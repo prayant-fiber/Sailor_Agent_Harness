@@ -1,0 +1,2 @@
+{ "id": "E8", "title": "402 handled without retry loop", "mock": { "outOfCreditsAfter": 0 }, "prompt": "Search 5 heads of RevOps in the US.", "maxSpend": 20,
+  "expect": { "maxCallsToPath": { "/v1/people-search": 2 }, "finalTextMatches": "(credit|top up|fiber\\.ai)" } }

@@ -1,0 +1,3 @@
+{ "id": "E4", "title": "Small messy file → preview → Kitchen Sink repair", "files": { "leads.csv": "Exported;;\nName;Company;LinkedIn\nDana Whitfield;Loomly;in.linkedin.com/in/dana-whitfield/\nRaj Menon;Tidewave;https://www.linkedin.com/in/raj-menon-ops?trk=x\n" },
+  "prompt": "Repair ./leads.csv (match everyone to LinkedIn, no contact info needed).", "maxSpend": 20,
+  "expect": { "calledPaths": ["/v1/kitchen-sink/bulk/profile"], "notCalledPaths": ["/v1/mosaic/start", "/v1/contact-details/single"], "maxCredits": 10 } }

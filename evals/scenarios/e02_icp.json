@@ -1,0 +1,2 @@
+{ "id": "E2", "title": "ICP → parse → count → small page", "prompt": "Find heads of RevOps at US B2B SaaS companies with 200-1000 employees. Just show me a first small sample.", "maxSpend": 30,
+  "expect": { "calledPaths": ["/v1/people-search"], "anyOfPaths": [["/v1/nlp-search/parse", "/v1/people-search/count"]], "maxPageSize": 25, "maxCredits": 30 } }

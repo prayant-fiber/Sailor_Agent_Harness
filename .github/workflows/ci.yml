@@ -1,0 +1,14 @@
+name: ci
+on: [push, pull_request]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: npm install
+      - run: npm run typecheck
+      - run: npm test
+      - name: Key never leaks into fixtures/sessions
+        run: "! grep -R --include='*.jsonl' -n 'sk_live_[A-Za-z0-9]\\{12,\\}' ~/.pi 2>/dev/null"

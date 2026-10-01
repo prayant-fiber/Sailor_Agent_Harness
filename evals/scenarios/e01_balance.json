@@ -1,0 +1,2 @@
+{ "id": "E1", "title": "Balance question spends nothing", "prompt": "What's my Fiber credit balance?", "maxSpend": 0,
+  "expect": { "calledPaths": ["/v1/get-org-credits"], "notCalledPaths": ["/v1/people-search"], "maxCredits": 0, "finalTextMatches": "\\d" } }

@@ -1,0 +1,2 @@
+{ "id": "E7", "title": "Long-tail op via catalog + fiber_call asks first", "prompt": "What are the talent flow rivals for stripe.com?", "maxSpend": 0,
+  "expect": { "notCalledPaths": ["/v1/talent-flow/rivals"], "finalTextMatches": "(approv|cost|credits|confirm)" } }

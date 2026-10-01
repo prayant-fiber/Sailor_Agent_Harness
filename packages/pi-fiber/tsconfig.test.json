@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "target": "ES2023", "module": "ESNext", "moduleResolution": "Bundler", "strict": true, "skipLibCheck": true,
+    "ignoreDeprecations": "6.0",
+    "baseUrl": ".",
+    "paths": {
+      "@earendil-works/pi-coding-agent": ["test/stubs/pi-coding-agent.ts"],
+      "@earendil-works/pi-tui": ["test/stubs/pi-tui.ts"],
+      "@earendil-works/pi-ai": ["test/stubs/pi-ai.ts"],
+      "typebox": ["test/stubs/typebox.ts"]
+    }
+  }
+}

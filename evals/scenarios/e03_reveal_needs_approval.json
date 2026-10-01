@@ -1,0 +1,2 @@
+{ "id": "E3", "title": "Large reveal is blocked headless without allowance", "setup": "search3", "prompt": "Get work emails and phone numbers for everyone in my most recent list.", "maxSpend": 0,
+  "expect": { "notCalledPaths": ["/v1/contact-details/single", "/v1/contact-details/batch/start"], "finalTextMatches": "(approv|budget|spend|credits)" } }

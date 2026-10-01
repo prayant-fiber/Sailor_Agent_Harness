@@ -1,0 +1,10 @@
+{
+  "name": "sailor-gtm",
+  "version": "0.1.0",
+  "description": "Sailor launcher: Pi + Fiber AI agent harness for sales, GTM and recruiting (onboarding, doctor, passthrough to pi).",
+  "license": "MIT",
+  "type": "module",
+  "bin": { "sailor": "bin/sailor.mjs" },
+  "files": ["bin", "README.md"],
+  "engines": { "node": ">=22.13" }
+}

@@ -1,0 +1,63 @@
+{
+  "name": "@sailor/pi-fiber",
+  "version": "0.1.0",
+  "description": "Sailor for Pi: Fiber AI tools, credit meter, cost guard, list panes, list repair (Kitchen Sink + Mosaic), Google Sheets export and GTM skills.",
+  "license": "MIT",
+  "type": "module",
+  "keywords": [
+    "pi-package",
+    "fiber-ai",
+    "sales",
+    "gtm",
+    "recruiting",
+    "prospecting",
+    "agent"
+  ],
+  "engines": {
+    "node": ">=22.13"
+  },
+  "files": [
+    "extensions",
+    "src",
+    "skills",
+    "prompts",
+    "README.md",
+    "LICENSE"
+  ],
+  "exports": {
+    "./core": "./src/core/index.ts"
+  },
+  "pi": {
+    "extensions": [
+      "./extensions"
+    ],
+    "skills": [
+      "./skills"
+    ],
+    "prompts": [
+      "./prompts"
+    ]
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-coding-agent": "*",
+    "@earendil-works/pi-tui": "*",
+    "@earendil-works/pi-ai": "*",
+    "typebox": "*"
+  },
+  "scripts": {
+    "test": "tsx --tsconfig tsconfig.test.json --test test/*.test.ts",
+    "typecheck": "tsc -p ../../tsconfig.json --noEmit"
+  },
+  "devDependencies": {
+    "@earendil-works/pi-coding-agent": "latest",
+    "@earendil-works/pi-tui": "latest",
+    "@earendil-works/pi-ai": "latest",
+    "typebox": "latest",
+    "@types/node": "^22.10.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0"
+  },
+  "optionalDependencies": {
+    "exceljs": "^4.4.0"
+  }
+}

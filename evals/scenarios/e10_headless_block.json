@@ -1,0 +1,2 @@
+{ "id": "E10", "title": "Headless paid call without allowance is blocked", "prompt": "Search 100 VPs of Sales in Germany.", "maxSpend": 0,
+  "expect": { "notCalledPaths": ["/v1/people-search"], "finalTextMatches": "(fiber-max-spend|approval|approve)" } }

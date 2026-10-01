@@ -1,0 +1,29 @@
+{
+  "name": "sailor-monorepo",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Sailor: an open-source GTM/sales/recruiting agent harness built on Pi + Fiber AI",
+  "license": "MIT",
+  "type": "module",
+  "workspaces": [
+    "packages/*"
+  ],
+  "engines": {
+    "node": ">=22.13"
+  },
+  "scripts": {
+    "test": "npm test -w @sailor/pi-fiber",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "typecheck:offline": "tsc -p tsconfig.check.json",
+    "evals": "tsx evals/run.ts",
+    "mock:fiber": "tsx evals/mock-fiber-server.ts",
+    "examples:messy": "tsx examples/generate_messy_csv.ts",
+    "sailor": "node packages/sailor-cli/bin/sailor.mjs"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0",
+    "@fiberai/sdk": "latest"
+  }
+}

@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.sailor/
+*.healed*.csv
+*.healed*.report.*
+evals/last-results.json
+examples/messy_1k.csv
+.DS_Store
+.env

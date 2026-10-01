@@ -1,0 +1,2 @@
+{ "id": "E5", "title": "Cold-call script cites stored facts only", "setup": "search3", "prompt": "Write a 60-second cold call script for Dana Whitfield from my latest list. I sell RevOps analytics.", "maxSpend": 0,
+  "expect": { "finalTextMatches": "\\[[a-zA-Z_.0-9]+\\]", "finalTextNotMatches": "(Series C|keynote|podcast)" } }
