@@ -72,6 +72,7 @@ function ask(q, { hidden = false } = {}) {
 async function credits(key) {
   const res = await fetch(`${BASE_URL}/v1/get-org-credits?apiKey=${encodeURIComponent(key)}`, { headers: { "x-api-key": key } });
   const body = await res.json().catch(() => ({}));
+  if (res.status === 501 && key.startsWith("sk_test_")) return { sandbox: true }; // balance isn't sandboxed yet
   if (!res.ok) throw new Error(res.status === 401 ? "Fiber rejected this key (401)." : `Fiber returned HTTP ${res.status}`);
   const out = Array.isArray(body.output) ? body.output : [body.output];
   return out.sort((a, b) => (b?.available ?? 0) - (a?.available ?? 0))[0];
@@ -80,12 +81,13 @@ async function credits(key) {
 async function login() {
   console.log(`${c.bold("Connect Fiber")} — create or copy a key at ${c.dim("https://fiber.ai/app/api")}`);
   for (let attempt = 0; attempt < 3; attempt++) {
-    const key = await ask("Fiber API key (sk_live_…): ", { hidden: true });
+    const key = await ask("Fiber API key (sk_live_… or sandbox sk_test_…): ", { hidden: true });
     if (!key) return false;
     try {
       const org = await credits(key);
       const where = setSecret(`fiber:${config().fiber?.profile ?? "default"}`, key);
-      console.log(c.green(`✓ Connected (${mask(key)}) · ${Number(org?.available ?? 0).toLocaleString()} credits available · stored in ${where}`));
+      const bal = org?.sandbox ? "sandbox key (no credits charged)" : `${Number(org?.available ?? 0).toLocaleString()} credits available${key.startsWith("sk_test_") ? " · sandbox key (no credits charged)" : ""}`;
+      console.log(c.green(`✓ Connected (${mask(key)}) · ${bal} · stored in ${where}`));
       return true;
     } catch (e) {
       console.log(c.red(`✗ ${e.message}`));
@@ -136,7 +138,7 @@ async function doctor() {
   const key = resolveKey();
   if (!key) bad("No Fiber key — run: sailor login");
   else {
-    try { const org = await credits(key); ok(`Fiber key ${mask(key)} valid · ${Number(org?.available ?? 0).toLocaleString()} credits`); }
+    try { const org = await credits(key); ok(`Fiber key ${mask(key)} valid · ${org?.sandbox ? "SANDBOX (balance endpoint not sandboxed; nothing is charged)" : `${Number(org?.available ?? 0).toLocaleString()} credits${key.startsWith("sk_test_") ? " · SANDBOX (nothing is charged)" : ""}`}`); }
     catch (e) { bad(`Fiber key ${mask(key)}: ${e.message}${/fetch failed/.test(e.message) ? " (behind a proxy? try NODE_USE_ENV_PROXY=1)" : ""}`); }
   }
   if (process.env.FIBER_API_KEY && process.env.FIBERAI_API_KEY && process.env.FIBER_API_KEY !== process.env.FIBERAI_API_KEY) warn("FIBER_API_KEY and FIBERAI_API_KEY differ; FIBER_API_KEY wins");

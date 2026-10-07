@@ -12,6 +12,7 @@ import { Gtm } from "../core/gtm";
 import { JobManager } from "../core/jobs/manager";
 import { batchContactsHandler, mosaicHandler } from "../core/repair/engine";
 import { resolveFiberKey, type ResolvedKey } from "../core/secrets";
+import { isSandboxKey } from "../core/fiber/sandbox";
 import { Store } from "../core/store/db";
 import { startOfLocalDay } from "../core/budget";
 import { CreditMeter } from "./meter";
@@ -70,6 +71,11 @@ export class Runtime {
 
   reloadKey(): void {
     this.keyInfo = resolveFiberKey(this.config.fiber.profile);
+  }
+
+  /** Sandbox keys start with sk_test_ and are never charged. */
+  get isSandbox(): boolean {
+    return isSandboxKey(this.keyInfo?.key) || !!this.client?.sandboxSeen;
   }
 
   get hasKey(): boolean {

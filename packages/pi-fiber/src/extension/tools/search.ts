@@ -11,7 +11,7 @@ const StrArr = (d: string) => Type.Optional(Type.Array(Type.String(), { descript
 
 const PeopleFilterSchema = {
   titles: StrArr("Job titles (free text terms), e.g. ['Head of RevOps','VP Sales']"),
-  titleGroups: StrArr("Title groups: founder, c-suite, board-member, vp, director, management, entry-level"),
+  titleGroups: StrArr("Title groups (only these values): founder, c-suite, board-member, vp, director, management, entry-level, assistant, intern"),
   countries: StrArr("ISO-3166 alpha-3 country codes, e.g. ['USA','GBR']"),
   keywords: StrArr("Profile keywords"),
   startedRoleWithinMonths: Type.Optional(Type.Integer({ description: "Only people who started their current role within N months" })),

@@ -86,7 +86,7 @@ export function registerListCommands(pi: ExtensionAPI, rt: Runtime): void {
     handler: async (_args, ctx) => {
       rt.init(ctx);
       const lists = rt.store.lists();
-      if (!lists.length) { say(ctx, "No lists yet — ask Sailor to find prospects, or /import csv <file>."); return; }
+      if (!lists.length) { say(ctx, "No lists yet — ask Sailor to find prospects, or /import-list csv <file>."); return; }
       if (!ctx.hasUI) { for (const l of lists) console.log(`${l.id}\t${l.name}\t${l.size} ${l.kind}`); return; }
       const labels = lists.map((l) => `${l.name} · ${l.size} ${l.kind} · ${l.id}`);
       const pick = await ctx.ui.select("Sailor lists", labels);
@@ -112,8 +112,8 @@ export function registerListCommands(pi: ExtensionAPI, rt: Runtime): void {
     },
   });
 
-  pi.registerCommand("import", {
-    description: "Import rows into a local list without spending credits: /import csv <file> [--name N] | /import sheets <url> [--name N]",
+  pi.registerCommand("import-list", {
+    description: "Import rows into a local list without spending credits: /import-list csv <file> [--name N] | /import-list sheets <url> [--name N]",
     handler: async (args, ctx) => {
       rt.init(ctx);
       const a = parseArgs(args);
@@ -122,13 +122,13 @@ export function registerListCommands(pi: ExtensionAPI, rt: Runtime): void {
         let headers: string[], records: Record<string, string>[], label: string;
         if (kind === "sheets") {
           const ref = src ? parseSheetUrl(src) : undefined;
-          if (!ref) throw new Error("Usage: /import sheets <google sheet url>");
+          if (!ref) throw new Error("Usage: /import-list sheets <google sheet url>");
           const token = await getAccessToken(googleClientFromEnv(rt.config.google.clientIdEnv, rt.config.google.clientSecretEnv));
           const s = await readSheet(token, ref);
           headers = s.headers; records = s.rows; label = s.title;
         } else {
           const path = src ? (isAbsolute(src) ? src : resolve(rt.cwd, src)) : "";
-          if (!path || !existsSync(path)) throw new Error("Usage: /import csv <path to .csv/.tsv/.xlsx>");
+          if (!path || !existsSync(path)) throw new Error("Usage: /import-list csv <path to .csv/.tsv/.xlsx>");
           const f = await readInputFile(path);
           headers = f.table.headers; records = f.table.records; label = path.split(/[\\/]/).pop()!;
         }

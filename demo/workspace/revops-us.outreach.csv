@@ -1,0 +1,93 @@
+﻿First Name,Last Name,Email,Title,Company,Website,LinkedIn,Mobile Phone,Time Zone,Custom1
+Jane,Doe,jane.doe@example.com,VP of Engineering,Northwind Robotics,,https://www.linkedin.com/in/jane-doe-sandbox,,America/Los_Angeles,"COLD CALL SCRIPT — Jane Doe, VP of Engineering [title] @ Northwind Robotics [company]
+Timezone: America/Los_Angeles [timezone] · Best call window: 9–11am or 4–5pm
+NOTE: Not a RevOps title — Northstar fit is unverified for this contact [unverified].
+
+PERMISSION OPENER:
+""Hi Jane, it's {{rep}} from Northstar. I know I'm catching you cold — can I grab 30 seconds and you tell me if it's worth continuing?""
+
+TRIGGER (grounded):
+""I saw you've led engineering at Northwind for a little over five years now [tenureMonths], after heading up engineering at Larkspur Freight [previousRoles]. People who've scaled teams that long usually feel the pain of revenue and usage data living in separate systems.""
+
+VALUE PROP (one line):
+""Northstar unifies CRM, billing and product-usage data so revenue forecasts land within ~5% and the weekly pipeline review takes 15 minutes instead of hours.""
+
+DISCOVERY (2 questions):
+1. ""Who owns revenue/forecasting data on your side today — is that engineering, ops, or finance?""
+2. ""How much of that reporting is still stitched together manually?""
+
+CTA:
+""If it's relevant, I'd love 15 minutes. I've got openings tomorrow 9:15am or 4:30pm your time — which works?""
+
+VOICEMAIL (<=20s):
+""Hi Jane, {{rep}} from Northstar. We help teams unify CRM, billing and usage data for forecasts within 5%. Not relevant? No worries. Otherwise I'll try you between 9 and 11am your time. Thanks.""
+
+OBJECTIONS:
+- ""We already have a BI tool."" -> ""Most teams do — Northstar sits on top and automates the revenue-specific layer rather than replacing it. Worth a 15-min look?""
+- ""Not my area."" -> ""Fair — who owns revenue ops and forecasting? Happy to point this at the right person.""
+- ""Send me an email."" -> ""Will do. So I tailor it — biggest reporting headache right now, CRM, billing, or usage?""
+
+Opt-out: ""Not relevant? Just say so and I won't follow up.""
+Sender: {{rep_name}}, {{rep_email}}"
+Amara,Okafor,jane.doe@example.com,Staff Software Engineer,Northwind Robotics,,https://www.linkedin.com/in/amara-okafor-sandbox,,America/Los_Angeles,"COLD CALL SCRIPT — Amara Okafor, Staff Software Engineer [title] @ Northwind Robotics [company]
+Timezone: America/Los_Angeles [timezone] · Best call window: 9–11am or 4–5pm
+NOTE: Individual-contributor engineer, not a RevOps buyer — Northstar fit is unverified [unverified]; likely a referral path, not a direct buyer.
+
+PERMISSION OPENER:
+""Hi Amara, {{rep}} from Northstar — total cold call. Give me 20 seconds to explain why I'm calling and then tell me to stop or keep going?""
+
+TRIGGER (grounded):
+""You've been a staff engineer at Northwind for about four years [tenureMonths], working close to the systems side [skills]. I'm usually trying to find whoever owns revenue and usage data internally.""
+
+VALUE PROP (one line):
+""Northstar unifies CRM, billing and product-usage data so revenue forecasts land within ~5% and pipeline reviews take 15 minutes.""
+
+DISCOVERY (2 questions):
+1. ""Do you know who owns revenue operations or forecasting data at Northwind?""
+2. ""Is usage data something your team exposes to the revenue side today?""
+
+CTA:
+""Could you point me to the right owner? Or if you're curious, 15 minutes tomorrow 9:15am or 4:30pm your time?""
+
+VOICEMAIL (<=20s):
+""Hi Amara, {{rep}} from Northstar. We unify CRM, billing and usage data for accurate forecasts. Really just trying to reach whoever owns revenue ops at Northwind — I'll try you again between 9 and 11am your time. Thanks.""
+
+OBJECTIONS:
+- ""Wrong person."" -> ""Completely fair — who would own revenue/forecasting data? A name is all I need.""
+- ""I'm just an engineer."" -> ""Understood — engineers often know where the data actually lives. Mind pointing me to the ops owner?""
+- ""Send an email."" -> ""Happy to — what's the best address for whoever runs revenue ops?""
+
+Opt-out: ""Not relevant? Just say so and I won't follow up.""
+Sender: {{rep_name}}, {{rep_email}}"
+Tomas,Delgado,jane.doe@example.com,Co-founder & Chief Executive Officer,Northwind Robotics,,https://www.linkedin.com/in/tomas-delgado-sandbox,,America/Los_Angeles,"COLD CALL SCRIPT — Tomas Delgado, Co-founder & CEO [title] @ Northwind Robotics [company]
+Timezone: America/Los_Angeles [timezone] · Best call window: 9–11am or 4–5pm
+NOTE: CEO, not a RevOps title — but an economic buyer. Northstar product-fit for a robotics co is unverified [unverified].
+
+PERMISSION OPENER:
+""Hi Tomas, {{rep}} from Northstar — I'll be quick since I know you're busy. 30 seconds to say why I'm calling, then you decide if it's worth more?""
+
+TRIGGER (grounded):
+""You've been building Northwind as co-founder and CEO for about eight and a half years [tenureMonths], and it looks like you're actively hiring right now [hiring]. As teams grow, founders usually lose line of sight on forecast accuracy.""
+
+VALUE PROP (one line):
+""Northstar unifies CRM, billing and product-usage data so your forecasts land within ~5% and the weekly pipeline review takes 15 minutes, not 3 hours.""
+
+DISCOVERY (2 questions):
+1. ""As you scale the team [hiring], how confident are you in your current revenue forecast?""
+2. ""Who owns revenue operations and forecasting for you today?""
+
+CTA:
+""Worth 15 minutes? I can do tomorrow 9:15am or 4:30pm your time — or I'll meet whoever you'd hand this to.""
+
+VOICEMAIL (<=20s):
+""Hi Tomas, {{rep}} from Northstar. We help founders get forecasts within 5% by unifying CRM, billing and usage data. I'll try you between 9 and 11am your time. Not relevant? Just let me know. Thanks.""
+
+OBJECTIONS:
+- ""Too early for us."" -> ""Fair — many founders wait, then retrofit it painfully. A 15-min look now just means you know where the bar is.""
+- ""My ops lead handles this."" -> ""Perfect — happy to talk to them. Who should I reach out to?""
+- ""Send info."" -> ""Will do. So it's relevant — is forecast accuracy or manual reporting the bigger pain today?""
+
+Opt-out: ""Not relevant? Just say so and I won't follow up.""
+Sender: {{rep_name}}, {{rep_email}}"
+Liam,Fitzgerald,,Head of Data Science,Meridian Health Analytics,,https://www.linkedin.com/in/liam-fitzgerald-sandbox,,America/New_York,
+Priya,Raman,,Director of Operations,Larkspur Freight,,https://www.linkedin.com/in/priya-raman-sandbox,,America/Chicago,

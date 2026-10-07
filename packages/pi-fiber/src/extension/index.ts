@@ -79,7 +79,8 @@ export default function sailor(pi: ExtensionAPI): void {
     renderJobsWidget();
 
     // Fiber MCP (lazy but in the background so the first prompt isn't blocked).
-    if (rt.hasKey && rt.config.fiber.mcp.length && rt.config.toolsProfile !== "lite") {
+    // Skipped for sandbox keys: MCP sandbox support is undocumented, and a failed connect would toast mid-demo.
+    if (rt.hasKey && !rt.isSandbox && rt.config.fiber.mcp.length && rt.config.toolsProfile !== "lite") {
       connectFiberMcp(pi, rt).then((names) => { if (names.length) applyMode(pi, rt); }).catch((err) => ctx.ui?.notify(`Fiber MCP unavailable (${errorMessage(err)}); typed tools and fiber_call still work.`, "warning"));
     }
     applyMode(pi, rt);

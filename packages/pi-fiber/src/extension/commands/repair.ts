@@ -49,7 +49,7 @@ export function registerRepairCommands(pi: ExtensionAPI, rt: Runtime): void {
         if (pre.engine === "kitchen-sink") {
           const res = await runKitchenSinkRepair(pre, rt.gtm, { onProgress: (d, t) => ctx.ui?.setStatus("sailor-progress", `resolving ${progressBar(d, t)} ${d}/${t}`) });
           ctx.ui?.setStatus("sailor-progress", undefined);
-          let msg = `Kitchen Sink: ${res.found} resolved, ${res.notFound} not found, ${res.skipped} skipped → list "${res.listName}" (${res.listId}).`;
+          let msg = `Kitchen Sink: ${res.found} resolved, ${res.notFound} not found, ${res.skipped} skipped → list "${res.listName}" (${res.listId}).${res.errors.length ? `\n⚠ Fiber error: ${res.errors.join("; ")}` : ""}`;
           const c = opts.contacts;
           if (c?.workEmail || c?.personalEmail || c?.phone) {
             const plan = revealPlan(rt, pickEntities(rt, res.listId, undefined, { status: "enriched" }), c);

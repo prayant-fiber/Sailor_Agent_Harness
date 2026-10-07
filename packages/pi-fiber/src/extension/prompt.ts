@@ -1,5 +1,6 @@
 /** System-prompt addendum injected on before_agent_start (mode-aware). */
 import type { Runtime } from "./runtime";
+import { SANDBOX_HIDDEN_TOOLS } from "../core/fiber/sandbox";
 
 export function systemPromptAddendum(rt: Runtime): string {
   const b = rt.config.budget;
@@ -40,6 +41,20 @@ export function systemPromptAddendum(rt: Runtime): string {
     "- You may write code. For Fiber automations use the TypeScript SDK @fiberai/sdk (see the fiber-sdk skill): read the key from process.env.FIBER_API_KEY, log chargeInfo, poll async jobs no faster than every 30s, add a --dry-run flag and a cost confirmation for paid loops.",
     "- Scripts you run with bash that call Fiber bypass Sailor's cost guard; say so and get consent before running them.",
   );
+  if (rt.isSandbox) {
+    const ops = [...rt.client.sandboxUnsupported].sort().join(", ");
+    lines.push(
+      "",
+      "## Fiber SANDBOX key",
+      "- The user is on a Fiber sandbox key (sk_test_…): calls are never charged. Estimates and approval prompts still appear; when you mention cost, say no credits are actually charged in sandbox.",
+      `- These Fiber operations are NOT available in sandbox: ${ops}. Don't attempt them, directly or via fiber_call.`,
+      "- Credit balance is unavailable: if asked, say the key is a sandbox key and nothing is charged; offer /credits for the estimate ledger.",
+      "- Searching: natural-language parsing isn't sandboxed. Build filters yourself with the friendly fields of fiber_count / fiber_search_people (titles, titleGroups, countries, industries, employee range, funding), count first, then search. Keep filters simple: the sandbox dataset is small, so one count is enough before searching.",
+      "- Person details: use entity_get / list_show on people already found by search, or fiber_repair_list for matching a file. Single-person enrichment isn't sandboxed.",
+      `- Tools hidden in sandbox: ${[...SANDBOX_HIDDEN_TOOLS].join(", ")}. The Fiber MCP bridge is off.`,
+      "- If any tool says an operation \"isn't available with a Fiber sandbox key\", don't retry; tell the user in one line and continue with what works.",
+    );
+  }
   if (rt.config.dryRun) lines.push("", "DRY-RUN is ON: paid calls are blocked and only estimated. Tell the user estimates, not results.");
   return lines.join("\n");
 }

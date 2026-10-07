@@ -89,7 +89,7 @@ export function registerRepairTools(pi: ExtensionAPI, rt: Runtime): void {
           const out = await revealContacts(rt, plan, { listId: res.listId, signal, onProgress: onUpdate });
           text += `\n${revealSummary(out)}`;
         }
-        return ok(`${text}\nOpen with /list ${res.listId}; export with /export.`, res);
+        return ok(`${text}\nOpen with /list ${res.listId}; export with /export-list.`, res);
       }
       try {
         const jobs = await startMosaicRuns(pre, { client: rt.client, store: rt.store, config: rt.config, signal });

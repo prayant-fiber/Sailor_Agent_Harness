@@ -1,6 +1,7 @@
 /** Public core API (usable without Pi, e.g. from scripts or the sailor CLI). */
 export * from "./config";
 export * from "./errors";
+export * from "./fiber/sandbox";
 export * from "./redact";
 export * from "./secrets";
 export * from "./budget";

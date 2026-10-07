@@ -1,15 +1,13 @@
 {
   "extends": "./tsconfig.base.json",
   "compilerOptions": {
-    "typeRoots": ["/opt/node-tools/node_modules/@types"],
-    "ignoreDeprecations": "6.0",
-    "baseUrl": ".",
+    "typeRoots": ["./node_modules/@types"],
     "paths": {
-      "@earendil-works/pi-coding-agent": ["types/shims/pi-coding-agent.d.ts"],
-      "@earendil-works/pi-tui": ["types/shims/pi-tui.d.ts"],
-      "@earendil-works/pi-ai": ["types/shims/pi-ai.d.ts"],
-      "typebox": ["types/shims/typebox.d.ts"],
-      "@fiberai/sdk": ["types/shims/fiberai-sdk.d.ts"]
+      "@earendil-works/pi-coding-agent": ["./types/shims/pi-coding-agent.d.ts"],
+      "@earendil-works/pi-tui": ["./types/shims/pi-tui.d.ts"],
+      "@earendil-works/pi-ai": ["./types/shims/pi-ai.d.ts"],
+      "typebox": ["./types/shims/typebox.d.ts"],
+      "@fiberai/sdk": ["./types/shims/fiberai-sdk.d.ts"]
     }
   },
   "include": ["packages/*/src/**/*.ts", "packages/*/extensions/**/*.ts", "packages/*/test/**/*.ts", "evals/**/*.ts", "examples/**/*.ts"]

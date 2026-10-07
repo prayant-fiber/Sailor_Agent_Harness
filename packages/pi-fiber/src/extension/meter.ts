@@ -5,7 +5,7 @@
 import type { ExtensionUIContext } from "@earendil-works/pi-coding-agent";
 import { fmtCredits } from "../core/budget";
 import type { ChargeEvent } from "../core/fiber/client";
-import { errorMessage, InvalidKeyError, OutOfCreditsError } from "../core/errors";
+import { errorMessage, InvalidKeyError, OutOfCreditsError, SandboxUnsupportedError } from "../core/errors";
 import type { Runtime } from "./runtime";
 
 export interface OrgCredits { organizationId?: string; subscriptionId?: string; max: number; used: number; available: number; usagePeriodResetsOn?: string; creditsPerOperation?: unknown }
@@ -18,7 +18,7 @@ export class CreditMeter {
   private ui?: ExtensionUIContext;
   private timer?: ReturnType<typeof setInterval>;
   private debounce?: ReturnType<typeof setTimeout>;
-  state: "unknown" | "ok" | "low" | "empty" | "nokey" | "error" = "unknown";
+  state: "unknown" | "ok" | "low" | "empty" | "nokey" | "error" | "sandbox" = "unknown";
   lastError?: string;
   private lowAlerted = false;
 
@@ -61,7 +61,8 @@ export class CreditMeter {
       this.state = this.computeState();
     } catch (err) {
       this.lastError = errorMessage(err);
-      this.state = err instanceof InvalidKeyError ? "nokey" : err instanceof OutOfCreditsError ? "empty" : "error";
+      this.state = err instanceof InvalidKeyError ? "nokey" : err instanceof OutOfCreditsError ? "empty" : err instanceof SandboxUnsupportedError ? "sandbox" : "error";
+      if (this.state === "sandbox") this.lastError = undefined;
     }
     this.render();
     return this.org;
@@ -98,8 +99,10 @@ export class CreditMeter {
     if (this.state === "nokey" || !this.rt.hasKey) return "Fiber: not connected · /fiber login";
     const a = this.available();
     const parts: string[] = [];
-    if (a === undefined) parts.push(this.state === "error" ? "Fiber: offline" : "Fiber: …");
-    else parts.push(`Fiber ${fmtCredits(a)} cr${this.state === "low" ? " LOW" : this.state === "empty" ? " EMPTY · top up" : ""}`);
+    const sb = this.rt.isSandbox;
+    if (sb && (a === undefined || this.state === "sandbox")) parts.push("Fiber SANDBOX · no credits charged");
+    else if (a === undefined) parts.push(this.state === "error" ? "Fiber: offline" : "Fiber: …");
+    else parts.push(`Fiber${sb ? " SANDBOX" : ""} ${fmtCredits(a)} cr${this.state === "low" ? " LOW" : this.state === "empty" ? " EMPTY · top up" : ""}`);
     let spent = 0;
     try { spent = this.rt.sessionSpent(); } catch { /* store not ready */ }
     parts.push(`session −${fmtCredits(spent)}/${fmtCredits(cfg.budget.session)}`);

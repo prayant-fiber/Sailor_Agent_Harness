@@ -87,7 +87,7 @@ after(async () => {
 
 test("registers the Sailor toolset, commands and rep-mode tool activation", () => {
   for (const t of ["fiber_credits", "fiber_parse_query", "fiber_count", "fiber_search_people", "fiber_search_companies", "fiber_nl_search", "fiber_resolve_person", "fiber_resolve_company", "fiber_reveal_contacts", "fiber_validate_emails", "fiber_repair_list", "list_all", "list_show", "entity_get", "list_set_notes", "export_list", "fiber_find_operation", "fiber_call", "fiber_tracker", "dnc_add"]) assert.ok(tools.has(t), t);
-  for (const c of ["fiber", "credits", "budget", "dryrun", "mode", "lists", "list", "import", "repair", "jobs", "export", "sheets", "dnc", "forget", "wipe", "new-script", "feedback"]) assert.ok(commands.has(c), c);
+  for (const c of ["fiber", "credits", "budget", "dryrun", "mode", "lists", "list", "import-list", "repair", "jobs", "export-list", "sheets", "dnc", "forget", "wipe", "new-script", "feedback"]) assert.ok(commands.has(c), c);
   assert.ok(active.includes("fiber_search_people"));
   assert.ok(!active.includes("bash"), "rep mode hides bash");
   assert.match(statuses.get("fiber") ?? "", /Fiber 5,000 cr/);

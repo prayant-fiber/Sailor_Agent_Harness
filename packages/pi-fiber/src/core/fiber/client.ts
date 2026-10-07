@@ -7,11 +7,12 @@
  * Uses Node's global fetch (Node ≥ 22). Behind a corporate proxy run with NODE_USE_ENV_PROXY=1.
  */
 import {
-  BlockedByPolicyError, FiberHttpError, InvalidKeyError, OutOfCreditsError, RateLimitedError, UnknownOutcomeError,
+  BlockedByPolicyError, FiberHttpError, InvalidKeyError, OutOfCreditsError, RateLimitedError, SandboxUnsupportedError, UnknownOutcomeError,
 } from "../errors";
 import { redactText } from "../redact";
 import { fillPath, getOp, type HttpMethod, type OpMeta } from "./ops";
 import { RateLimiter, sleep } from "./ratelimit";
+import { isSandboxKey, SANDBOX_UNSUPPORTED_OPS } from "./sandbox";
 
 export interface ChargeEvent {
   opId: string;
@@ -54,6 +55,10 @@ export interface FiberResponse<T = any> {
 }
 
 export class FiberClient {
+  /** True once Fiber has answered with `x-fiber-sandbox: true` (sandbox key, nothing charged). */
+  sandboxSeen = false;
+  /** Operations that returned 501 for a sandbox key (seeded with the known list, extended at runtime). */
+  readonly sandboxUnsupported = new Set<string>(SANDBOX_UNSUPPORTED_OPS);
   readonly limiter: RateLimiter;
   private readonly fetchImpl: typeof fetch;
 
@@ -77,6 +82,7 @@ export class FiberClient {
 
     const key = this.opts.getKey();
     if (!key) throw new InvalidKeyError(meta.opId, "no key configured");
+    if (isSandboxKey(key) && this.sandboxUnsupported.has(meta.opId)) throw new SandboxUnsupportedError(meta.opId);
 
     const { path, rest } = fillPath(meta.path, stripApiKey(args));
     const url = new URL(path, this.opts.baseUrl);
@@ -116,6 +122,7 @@ export class FiberClient {
       }
 
       const body = await readBody(res);
+      if (res.headers.get("x-fiber-sandbox") === "true") this.sandboxSeen = true;
       if (res.ok) {
         this.emitCharge(meta.opId, body, rest);
         return body as FiberResponse<T>;
@@ -133,6 +140,9 @@ export class FiberClient {
           if (attempt <= maxRetries) { this.opts.onWait?.(meta.opId, wait); await sleep(wait, co.signal); continue; }
           throw new RateLimitedError(meta.opId, wait, body);
         }
+        case 501:
+          if (isSandboxKey(key)) this.sandboxUnsupported.add(meta.opId);
+          throw new SandboxUnsupportedError(meta.opId, body);
         default: {
           if (res.status >= 500 && meta.idempotent && attempt <= maxRetries) { await sleep(backoff(attempt), co.signal); continue; }
           const msg = errorText(body) ?? res.statusText;

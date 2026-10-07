@@ -9,7 +9,7 @@ Fiber 48,210 cr │ session −132.5/500 │ ⧗ 1 job
 > get work emails for the top 10          → "Spend ~20 credits on Fiber?" [y/N]
 > /repair ./hubspot_export.csv --work-email   → pre-flight card → Mosaic job → healed CSV + list
 > write 60-second cold-call scripts for them  → every fact cited, e.g. [latestFunding.stage]
-> /export revops-us sheets --preset outreach  → Google Sheet link
+> /export-list revops-us sheets --preset outreach  → Google Sheet link
 ```
 
 ## What's inside
@@ -21,7 +21,7 @@ Fiber 48,210 cr │ session −132.5/500 │ ⧗ 1 job
 | Built-in Fiber MCP | Zero-dependency Streamable-HTTP MCP bridge to `mcp.fiber.ai` (Core by default). `/fiber mcp core,v2,lite,off`. Pi has no MCP of its own |
 | One-click enrich and repair | `/repair` and `fiber_repair_list`: local parsing (encoding, delimiter, header row, column roles), then **Kitchen Sink bulk** (≤50 rows) or **Mosaic** (async jobs, auto-split over 20k rows), then import into a list. In the list pane: `e` reveal, `v` validate, `r` re-resolve |
 | Prospect/company panes and TUI components | `/list <id>`: virtualized table with sorting, filtering, multi-select, cards (tenure, local time, contacts with validity, funding, headcount sparkline) and one-key actions |
-| Google Sheets export | `/export <list> sheets` (new, append or **upsert**; RAW input; sequencer presets) and `/import sheets <url>` |
+| Google Sheets export | `/export-list <list> sheets` (new, append or **upsert**; RAW input; sequencer presets) and `/import-list sheets <url>` |
 | Skills/SDK for vibe-coding with Fiber | Skills: `fiber-sdk`, `sailor-gtm-engineering`, prospecting, list-repair, cold-call, sales-strategy, recruiting. `/mode engineer`, `/new-script` |
 
 It also covers things the brief didn't ask for (see `docs/06_Edge_Cases_and_Gaps.md`):
@@ -63,9 +63,9 @@ In Pi: `/login` (or export `ANTHROPIC_API_KEY` etc.) for your LLM, then `/fiber 
 | `/lists` · `/list <id>` · `/list rename\|delete` | Browse and act on lists (pane keys: `↑↓ space a ⏎ e v r d x S / s c q`) |
 | `/repair <file\|url\|sheet> [--work-email] [--personal-email] [--phone] [--company] [--max-rows N] [--engine …] [--url PUBLIC_URL]` | Heal and enrich a list. `/repair hosting manual\|gdrive\|s3` |
 | `/jobs [refresh\|cancel\|resume <id>]` | Async Mosaic and batch-reveal jobs (persisted, resumed on restart) |
-| `/export <list> sheets\|csv\|xlsx [--preset …] [--mode upsert] [--sheet URL] [--valid-only]` | Export (do-not-contact rows are always excluded) |
+| `/export-list <list> sheets\|csv\|xlsx [--preset …] [--mode upsert] [--sheet URL] [--valid-only]` | Export (do-not-contact rows are always excluded) |
 | `/sheets connect [--device]\|client <id> <secret>\|status\|disconnect` | Google OAuth (scope `drive.file` only) |
-| `/import csv <file>\|sheets <url>` | Import without spending credits |
+| `/import-list csv <file>\|sheets <url>` | Import without spending credits |
 | `/mode rep\|engineer\|recruiting` | Persona and tool set (rep mode hides shell and file-writing tools) |
 | `/dnc add\|remove\|list` · `/forget <id>` · `/wipe` | Suppression and privacy |
 | `/new-script <name>` · `/feedback` | Vibe-coding scaffold · local feedback notes |

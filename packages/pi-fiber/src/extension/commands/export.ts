@@ -21,13 +21,13 @@ function openBrowser(url: string): void {
 }
 
 export function registerExportCommands(pi: ExtensionAPI, rt: Runtime): void {
-  pi.registerCommand("export", {
-    description: "Export a list: /export <list> <sheets|csv|xlsx> [--preset outreach|apollo|hubspot|salesloft|instantly|smartlead] [--mode new|append|upsert] [--sheet URL] [--title T] [--valid-only] [--path P]",
+  pi.registerCommand("export-list", {
+    description: "Export a list: /export-list <list> <sheets|csv|xlsx> [--preset outreach|apollo|hubspot|salesloft|instantly|smartlead] [--mode new|append|upsert] [--sheet URL] [--title T] [--valid-only] [--path P]",
     handler: async (args, ctx) => {
       rt.init(ctx);
       const a = parseArgs(args, ["valid-only"]);
       const [list, target = "csv"] = a._;
-      if (!list) { say(ctx, "Usage: /export <list> <sheets|csv|xlsx> [options]", "warning"); return; }
+      if (!list) { say(ctx, "Usage: /export-list <list> <sheets|csv|xlsx> [options]", "warning"); return; }
       try {
         const msg = await doExport(rt, {
           list, target: target as any, preset: flagStr(a, "preset") as any, mode: flagStr(a, "mode") as any, sheetUrl: flagStr(a, "sheet"),
@@ -67,7 +67,7 @@ export function registerExportCommands(pi: ExtensionAPI, rt: Runtime): void {
           } else {
             await loopbackAuthorize(client, (url) => { say(ctx, `Opening your browser for Google sign-in… If it doesn't open: ${url}`); openBrowser(url); });
           }
-          say(ctx, "✓ Google Sheets connected. Try: /export <list> sheets");
+          say(ctx, "✓ Google Sheets connected. Try: /export-list <list> sheets");
           return;
         }
         say(ctx, "Unknown subcommand.", "warning");

@@ -8,12 +8,14 @@
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import type { Runtime } from "./runtime";
 import { LITE_TOOLS, SAILOR_TOOLS } from "./tools/common";
+import { SANDBOX_HIDDEN_TOOLS } from "../core/fiber/sandbox";
 
 const WRITE_TOOLS = new Set(["bash", "edit", "write"]);
 
-export function computeActiveTools(all: string[], rt: Pick<Runtime, "config">): string[] {
+export function computeActiveTools(all: string[], rt: Pick<Runtime, "config"> & { isSandbox?: boolean }): string[] {
   const { mode, toolsProfile } = rt.config;
   return all.filter((name) => {
+    if (rt.isSandbox && SANDBOX_HIDDEN_TOOLS.has(name)) return false;
     if (toolsProfile === "lite") return LITE_TOOLS.has(name) || name === "read";
     if (mode !== "engineer" && WRITE_TOOLS.has(name)) return false;
     return true;

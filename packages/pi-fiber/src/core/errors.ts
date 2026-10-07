@@ -40,6 +40,17 @@ export class OutOfCreditsError extends FiberHttpError {
   }
 }
 
+/** Sandbox keys (sk_test_…) get 501 on operations Fiber hasn't sandboxed yet. Not a server fault: never retry. */
+export class SandboxUnsupportedError extends FiberHttpError {
+  constructor(opId: string, body?: unknown) {
+    super(
+      `${opId} isn't available with a Fiber sandbox key yet (501). Skip this step or use a live key for it.`,
+      501, opId, body, undefined, "sandbox limitation",
+    );
+    this.name = "SandboxUnsupportedError";
+  }
+}
+
 export class RateLimitedError extends FiberHttpError {
   constructor(opId: string, public readonly retryAfterMs: number, body?: unknown) {
     super(`Rate limited on ${opId}; retry after ${Math.ceil(retryAfterMs / 1000)}s.`, 429, opId, body);

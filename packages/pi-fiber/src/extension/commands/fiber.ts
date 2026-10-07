@@ -17,13 +17,14 @@ function say(ctx: ExtensionContext, msg: string, level: "info" | "warning" | "er
 
 export async function fiberLogin(rt: Runtime, ctx: ExtensionContext, profile = rt.config.fiber.profile, keyArg?: string): Promise<boolean> {
   let key = keyArg;
-  if (!key && ctx.hasUI) key = (await ctx.ui.input("Fiber API key (sk_live_…) — get one at fiber.ai/app/api", "sk_live_…"))?.trim();
+  if (!key && ctx.hasUI) key = (await ctx.ui.input("Fiber API key (sk_live_… or sandbox sk_test_…) — get one at fiber.ai/app/api", "sk_live_…"))?.trim();
   if (!key) { say(ctx, "No key entered.", "warning"); return false; }
-  if (!looksLikeFiberKey(key)) say(ctx, "That doesn't look like a Fiber key (expected sk_live_…); trying anyway.", "warning");
+  if (!looksLikeFiberKey(key)) say(ctx, "That doesn't look like a Fiber key (expected sk_live_… or sk_test_…); trying anyway.", "warning");
   const prev = rt.keyInfo;
   rt.keyInfo = { key, source: "file" };
   const org = await rt.meter.refresh();
-  if (!org) {
+  const sandboxOk = !org && rt.meter.state === "sandbox";
+  if (!org && !sandboxOk) {
     rt.keyInfo = prev;
     say(ctx, `Key rejected or Fiber unreachable: ${rt.meter.lastError ?? "unknown error"}`, "error");
     rt.meter.render();
@@ -32,7 +33,7 @@ export async function fiberLogin(rt: Runtime, ctx: ExtensionContext, profile = r
   const backend = storeFiberKey(key, profile);
   rt.reloadKey();
   saveGlobalConfig({ fiber: { profile } } as any);
-  say(ctx, `✓ Connected to Fiber (${maskKey(key)}, profile "${profile}", stored in ${backend === "keychain" ? "OS keychain" : "~/.sailor/credentials.json (0600)"}) · ${fmtCredits(org.available)} credits available.`);
+  say(ctx, `✓ Connected to Fiber (${maskKey(key)}, profile "${profile}", stored in ${backend === "keychain" ? "OS keychain" : "~/.sailor/credentials.json (0600)"}) · ${org ? `${fmtCredits(org.available)} credits available` : "sandbox key: balance not available, nothing is charged"}.`);
   return true;
 }
 

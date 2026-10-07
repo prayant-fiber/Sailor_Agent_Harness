@@ -33,7 +33,9 @@ export interface CompanyFilters {
   fundedWithinMonths?: number;
 }
 
+// jobTitleV2 group variants (ai-docs peopleSearch): { type, groups: string[] } with these enums.
 const STATIC_TITLE_GROUPS = new Set(["founder", "c-suite", "board-member"]);
+const DYNAMIC_TITLE_GROUPS = new Set(["vp", "director", "management", "entry-level", "assistant", "intern"]);
 
 /**
  * Friendly filters → Fiber searchParams. jobTitleV2 / country3LetterCode / industriesV2 / headquartersCountryCode /
@@ -45,7 +47,13 @@ export function buildPeopleSearchParams(f: PeopleFilters): Record<string, unknow
   const sp: Record<string, any> = {};
   const titles: any[] = [];
   for (const t of f.titles ?? []) titles.push({ type: "term", term: t });
-  for (const g of f.titleGroups ?? []) titles.push(STATIC_TITLE_GROUPS.has(g) ? { type: "static-groups", group: g } : { type: "dynamic-groups", group: g });
+  const groups = (f.titleGroups ?? []).map((g) => g.trim().toLowerCase()).filter(Boolean);
+  const unknown = groups.filter((g) => !STATIC_TITLE_GROUPS.has(g) && !DYNAMIC_TITLE_GROUPS.has(g));
+  if (unknown.length) throw new Error(`Unknown title group(s): ${unknown.join(", ")}. Allowed: ${[...STATIC_TITLE_GROUPS, ...DYNAMIC_TITLE_GROUPS].join(", ")}. Use titles for anything else.`);
+  const staticGroups = groups.filter((g) => STATIC_TITLE_GROUPS.has(g));
+  const dynamicGroups = groups.filter((g) => DYNAMIC_TITLE_GROUPS.has(g));
+  if (staticGroups.length) titles.push({ type: "static-groups", groups: staticGroups });
+  if (dynamicGroups.length) titles.push({ type: "dynamic-groups", groups: dynamicGroups });
   if (titles.length) sp.jobTitleV2 = { anyOf: titles };
   if (f.countries?.length) sp.country3LetterCode = { anyOf: f.countries.map((c) => c.toUpperCase()) };
   if (f.keywords?.length) sp.keywords = { containsAny: f.keywords };
