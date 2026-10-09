@@ -24,6 +24,11 @@ import { registerListCommands, openListPane } from "./commands/lists";
 import { registerRepairCommands } from "./commands/repair";
 import { registerExportCommands } from "./commands/export";
 import { registerScriptCommands } from "./commands/script";
+import { registerProspectingTools } from "./tools/prospecting";
+import { registerProspectingCommands } from "./commands/prospecting";
+import { registerCrm } from "./commands/crm";
+import { isAgentMode, registerAgentModes } from "./agentMode";
+import { installFiberLook, registerFiberLook } from "./ui/fiberLook";
 
 export default function sailor(pi: ExtensionAPI): void {
   let jobsListenerInstalled = false;
@@ -41,12 +46,17 @@ export default function sailor(pi: ExtensionAPI): void {
   registerListTools(pi, rt);
   registerExportTools(pi, rt);
   registerGenericTools(pi, rt);
+  registerProspectingTools(pi, rt);
   installCostGuard(pi, rt);
   registerFiberCommands(pi, rt);
   registerListCommands(pi, rt);
   registerRepairCommands(pi, rt);
   registerExportCommands(pi, rt);
   registerScriptCommands(pi, rt);
+  registerProspectingCommands(pi, rt); // FIB-20428
+  registerCrm(pi, rt); // FIB-20427
+  registerAgentModes(pi, rt); // FIB-20426
+  registerFiberLook(pi, rt);
 
   pi.registerShortcut("ctrl+shift+l", { description: "Sailor: open lists", handler: async (ctx) => { rt.init(ctx); const l = rt.store.lists()[0]; if (l) await openListPane(rt, ctx, l.id); else ctx.ui.notify("No lists yet.", "info"); } });
   pi.registerShortcut("ctrl+shift+k", { description: "Sailor: refresh Fiber credits", handler: async (ctx) => { rt.init(ctx); await rt.meter.refresh(); ctx.ui.notify(rt.meter.text(), "info"); } });
@@ -59,11 +69,16 @@ export default function sailor(pi: ExtensionAPI): void {
     if (pi.getFlag("fiber-dry-run")) rt.config.dryRun = true;
     const mode = pi.getFlag("sailor-mode");
     if (typeof mode === "string" && ["rep", "engineer", "recruiting"].includes(mode)) rt.config.mode = mode as any;
+    const agentMode = pi.getFlag("agent-mode");
+    if (isAgentMode(agentMode) && agentMode !== rt.config.agentMode) { rt.config.agentMode = agentMode; rt.reloadKey(); }
+    // Fiber look (header/footer/spinner). The colour theme comes from the `sailor` launcher or `/look fiber`, so a theme the user picked in /settings is never overridden.
+    if (rt.config.ui.look === "fiber") installFiberLook(rt, ctx);
+    if (rt.agentMode === "sandbox" && !rt.hasKey) ctx.ui?.notify("SANDBOX mode, but no sandbox key yet: run /sandbox to add one (or /build to go back).", "warning");
 
     if (rt.keyInfo?.warning) ctx.ui?.notify(rt.keyInfo.warning, "warning");
     rt.meter.render();
     if (rt.hasKey) void rt.meter.refresh();
-    else if (ctx.hasUI) ctx.ui.notify("Sailor: connect your Fiber account with /fiber login (key from fiber.ai/app/api).", "info");
+    else if (ctx.hasUI && rt.agentMode !== "sandbox") ctx.ui.notify("Sailor: connect your Fiber account with /fiber login (key from fiber.ai/app/api).", "info");
     rt.meter.start();
 
     // Jobs: resume persisted jobs, show progress widget, announce completions.
@@ -94,6 +109,7 @@ export default function sailor(pi: ExtensionAPI): void {
   pi.on("before_agent_start", async (event, ctx) => {
     rt.init(ctx);
     rt.paidCallsThisTurn = 0;
+    applyMode(pi, rt); // picks up MCP tools (e.g. a CRM) that connected since the last turn
     return { systemPrompt: `${event.systemPrompt}\n${systemPromptAddendum(rt)}` };
   });
 

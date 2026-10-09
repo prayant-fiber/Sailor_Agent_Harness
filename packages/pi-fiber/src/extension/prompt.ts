@@ -41,12 +41,28 @@ export function systemPromptAddendum(rt: Runtime): string {
     "- You may write code. For Fiber automations use the TypeScript SDK @fiberai/sdk (see the fiber-sdk skill): read the key from process.env.FIBER_API_KEY, log chargeInfo, poll async jobs no faster than every 30s, add a --dry-run flag and a cost confirmation for paid loops.",
     "- Scripts you run with bash that call Fiber bypass Sailor's cost guard; say so and get consent before running them.",
   );
+  if (rt.config.agentMode === "plan") lines.push(
+    "",
+    "## PLAN mode (FIB-20426): plan, don't spend",
+    "- You are in Plan mode. Paid Fiber calls are blocked and shell/file-writing tools are off. Free tools (list_show, list_profile, entity_get, list_all, fiber_find_operation, previews like fiber_repair_list preview=true) still work; use them to ground the plan in the user's real data.",
+    "- Reply with a heading \"Plan\" and a numbered list. For each step give: what you'll do, the Sailor tool or slash command, and the estimated Fiber credits (\"free\" when free). End with the total estimate and anything you need the user to decide.",
+    "- Don't try to work around the block (no fiber_call, MCP or scripts to do the same thing). When the plan is ready the user runs it with /build, or tries it free with /sandbox.",
+  );
+  if (rt.config.agentMode === "sandbox") lines.push(
+    "",
+    "## SANDBOX mode (FIB-20426)",
+    "- The user switched Sailor into Sandbox mode on purpose to try a workflow without spending credits. Treat it as a rehearsal of the real run: do every step the user asks for.",
+  );
   if (rt.isSandbox) {
     const ops = [...rt.client.sandboxUnsupported].sort().join(", ");
     lines.push(
       "",
-      "## Fiber SANDBOX key",
-      "- The user is on a Fiber sandbox key (sk_test_…): calls are never charged. Estimates and approval prompts still appear; when you mention cost, say no credits are actually charged in sandbox.",
+      "## Fiber SANDBOX mode: sample data, keep going",
+      "- The user is on a Fiber sandbox key (sk_test_…). Fiber returns a small, FIXED set of fictional sample records (e.g. names ending in -sandbox LinkedIn URLs, example.com emails) no matter what filters you send. The data will NOT match the request; that is expected and is not a bug, a bad filter or something to fix.",
+      "- Proceed exactly as you would with real data. Treat whatever comes back as the result of the request and move on to the next step the user asked for. Do not re-run, broaden or tweak a search because results look wrong or the count is small; one count, then the search.",
+      "- Don't get in the user's way: no caveats about mismatched titles, companies, ICP fit, duplicate or placeholder emails, or 'inconclusive' validations; don't ask the user whether to continue because of the data; don't add 'on a live key…' disclaimers. At most, the FIRST Fiber result of the session may carry one short line: \"(Sandbox: sample data.)\". Nothing after that.",
+      "- Outreach in sandbox: write scripts/emails for the people as returned, using their stored facts as-is (still cite fields; the grounding check still applies). Don't flag that they aren't the target persona; don't call the output a 'format demo'.",
+      "- Calls are never charged. Estimates and approval prompts still appear; if cost comes up, say no credits are actually charged in sandbox.",
       `- These Fiber operations are NOT available in sandbox: ${ops}. Don't attempt them, directly or via fiber_call.`,
       "- Credit balance is unavailable: if asked, say the key is a sandbox key and nothing is charged; offer /credits for the estimate ledger.",
       "- Searching: natural-language parsing isn't sandboxed. Build filters yourself with the friendly fields of fiber_count / fiber_search_people (titles, titleGroups, countries, industries, employee range, funding), count first, then search. Keep filters simple: the sandbox dataset is small, so one count is enough before searching.",

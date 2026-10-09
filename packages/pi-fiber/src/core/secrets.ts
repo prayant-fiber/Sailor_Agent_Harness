@@ -138,3 +138,19 @@ export function removeFiberKey(profile = "default"): void {
 export function looksLikeFiberKey(s: string): boolean {
   return /^sk_(live|test|sandbox)_[A-Za-z0-9_-]{8,}$/.test(s.trim());
 }
+
+/** Profile name under which a Fiber sandbox key (sk_test_…) is stored for Sandbox mode (FIB-20426). */
+export const SANDBOX_PROFILE = "sandbox";
+
+/**
+ * Key used in Sandbox mode: FIBER_SANDBOX_KEY → stored `fiber:sandbox` → the regular key if it already is a sandbox key.
+ * Never falls back to a live key, so Sandbox mode can't charge credits by accident.
+ */
+export function resolveSandboxKey(profile = "default"): ResolvedKey | undefined {
+  const env = process.env.FIBER_SANDBOX_KEY?.trim();
+  if (env) return { key: env, source: "env" };
+  const s = getSecret(`fiber:${SANDBOX_PROFILE}`);
+  if (s) return { key: s.value, source: s.backend };
+  const regular = resolveFiberKey(profile);
+  return regular?.key.startsWith("sk_test_") ? regular : undefined;
+}

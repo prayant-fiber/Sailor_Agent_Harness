@@ -1,9 +1,12 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync, chmodSync } from "node:fs";
 import { homedir } from "node:os";
 import { dirname, join } from "node:path";
+import type { CrmConfig } from "./crm";
 
 export type ToolsProfile = "full" | "lite";
 export type Mode = "rep" | "engineer" | "recruiting";
+/** How the agent acts (FIB-20426): build = do the work, plan = zero-spend planning, sandbox = run on a Fiber sandbox key. */
+export type AgentMode = "build" | "plan" | "sandbox";
 export type HostingProvider = "manual" | "gdrive" | "s3";
 
 export interface SailorConfig {
@@ -30,6 +33,12 @@ export interface SailorConfig {
   cache: { profileTtlDays: number; companyTtlDays: number; contactTtlDays: number };
   toolsProfile: ToolsProfile;
   mode: Mode;
+  /** Build / Plan / Sandbox (orthogonal to the persona `mode`). */
+  agentMode: AgentMode;
+  /** Terminal look: "fiber" brands the header/footer/theme, "pi" keeps Pi's stock UI. */
+  ui: { look: "fiber" | "pi" };
+  /** Linked CRM for /crm export (FIB-20427). */
+  crm: CrmConfig;
   hosting: {
     provider: HostingProvider;
     s3?: { endpoint?: string; region: string; bucket: string; accessKeyIdEnv: string; secretAccessKeyEnv: string; prefix?: string; ttlSeconds?: number };
@@ -54,6 +63,9 @@ export const DEFAULT_CONFIG: SailorConfig = {
   cache: { profileTtlDays: 30, companyTtlDays: 30, contactTtlDays: 90 },
   toolsProfile: "full",
   mode: "rep",
+  agentMode: "build",
+  ui: { look: "fiber" },
+  crm: {},
   hosting: { provider: "manual" },
   google: { clientIdEnv: "SAILOR_GOOGLE_CLIENT_ID", clientSecretEnv: "SAILOR_GOOGLE_CLIENT_SECRET", defaultFolderId: null },
   compliance: { region: "US", requireSuppressionCheck: true },
@@ -108,6 +120,8 @@ export function loadConfig(cwd: string = process.cwd()): SailorConfig {
   cfg = deepMerge(cfg, readJson(projectConfigPath(cwd)));
   if (process.env.SAILOR_DRY_RUN === "1") cfg.dryRun = true;
   if (process.env.SAILOR_TOOLS_PROFILE === "lite") cfg.toolsProfile = "lite";
+  if (process.env.SAILOR_AGENT_MODE && ["build", "plan", "sandbox"].includes(process.env.SAILOR_AGENT_MODE)) cfg.agentMode = process.env.SAILOR_AGENT_MODE as AgentMode;
+  if (process.env.SAILOR_LOOK === "pi" || process.env.SAILOR_LOOK === "fiber") cfg.ui.look = process.env.SAILOR_LOOK;
   if (process.env.SAILOR_MAX_SPEND) cfg.budget.headlessMaxSpend = Number(process.env.SAILOR_MAX_SPEND) || 0;
   if (process.env.FIBER_BASE_URL) cfg.fiber.baseUrl = process.env.FIBER_BASE_URL;
   if (process.env.FIBER_MCP_BASE_URL) cfg.fiber.mcpBaseUrl = process.env.FIBER_MCP_BASE_URL;

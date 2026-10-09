@@ -69,6 +69,12 @@ In Pi: `/login` (or export `ANTHROPIC_API_KEY` etc.) for your LLM, then `/fiber 
 | `/mode rep\|engineer\|recruiting` | Persona and tool set (rep mode hides shell and file-writing tools) |
 | `/dnc add\|remove\|list` · `/forget <id>` · `/wipe` | Suppression and privacy |
 | `/new-script <name>` · `/feedback` | Vibe-coding scaffold · local feedback notes |
+| `/build` · `/plan` · `/sandbox [key sk_test_…]` · `/agent-mode` · `alt+m` | Agent mode: **Build** does the work; **Plan** is zero-spend (paid calls and write tools blocked, ends with "run in Build / try in Sandbox"); **Sandbox** runs on a Fiber sandbox key and never touches the live key. Also `--agent-mode` / `SAILOR_AGENT_MODE` |
+| `/qualify [list] [criteria…] [--min 70]` | AI scores every row 0-100 with a reason (`list_score`), then copies the best fits into a new list |
+| `/lookalikes [list] [--count 25]` | Infers the list's pattern (`list_profile`) and finds more like it with Fiber search, deduped against the seed list |
+| `/emails [list] [--personal]` · `/phones` · `/contact-info` · `/socials [--refresh]` | Contact-info shortcuts for a whole list (same cost guard as the list pane; socials are read from stored Fiber data for free) |
+| `/crm [connect hubspot\|salesforce\|attio\|custom <url>\|export [list] [--min-score N]\|disconnect]` | Links your CRM's own MCP server (Pi handles OAuth: `/mcp login <crm>`) and pushes lists to it; do-not-contact rows never leave |
+| `/look fiber\|pi` | Fiber-branded terminal (wordmark header, mode chip + credits footer, purple spinner, `fiber-dark`/`fiber-light` themes) or Pi's stock look |
 | Prompt templates: `/icp` `/callscript` `/sequence` `/account-plan` `/sourcing` `/tam` `/repair-list` | Ready-made workflows |
 
 Flags for headless use (`pi -p`, `--mode json|rpc`): `--fiber-max-spend <credits>`, `--fiber-dry-run`, `--sailor-mode <mode>`. Without `--fiber-max-spend`, any paid call that needs approval is blocked in headless mode.

@@ -65,3 +65,27 @@ test("title groups use the documented { type, groups: [] } shape and reject unkn
   ]);
   assert.throws(() => buildPeopleSearchParams({ titleGroups: ["ceo"] }), /Unknown title group/);
 });
+
+test("FIB-20390: sandbox prompt tells the agent to proceed on sample data without caveats", async () => {
+  const { systemPromptAddendum } = await import("../src/extension/prompt");
+  const base = { config: { budget: { autoApproveUnder: 25, session: 500, daily: 2000 }, mode: "rep", dryRun: false }, client: { sandboxUnsupported: new Set(["slushieRun"]) } };
+  const sb = systemPromptAddendum({ ...base, isSandbox: true } as any);
+  assert.match(sb, /SANDBOX mode: sample data, keep going/);
+  assert.match(sb, /will NOT match the request/);
+  assert.match(sb, /Do not re-run, broaden or tweak a search/);
+  assert.match(sb, /Don't get in the user's way/);
+  const live = systemPromptAddendum({ ...base, isSandbox: false } as any);
+  assert.doesNotMatch(live, /SANDBOX/);
+});
+
+test("FIB-20390: Fiber data results carry a hidden sandbox note; other results and live keys don't", async () => {
+  const { withSandboxNote, SANDBOX_DATA_NOTE } = await import("../src/extension/tools/common");
+  const fiber = { content: [{ type: "text", text: '<untrusted source="fiber">table</untrusted>' }], details: {} } as any;
+  const plain = { content: [{ type: "text", text: "Saved notes." }], details: {} } as any;
+  const s = withSandboxNote(fiber, true);
+  assert.equal(s.content.length, 2);
+  assert.equal((s.content[1] as any).text, SANDBOX_DATA_NOTE);
+  assert.equal((s.content[0] as any).text, (fiber.content[0] as any).text, "the user-visible block is unchanged");
+  assert.equal(withSandboxNote(fiber, false).content.length, 1);
+  assert.equal(withSandboxNote(plain, true).content.length, 1);
+});

@@ -31,7 +31,7 @@ export function registerListTools(pi: ExtensionAPI, rt: Runtime): void {
     label: "Show list",
     lite: true,
     needsKey: false,
-    description: "Read rows of a Sailor list (local, free). Use `fields` to fetch only what you need, e.g. people: id,name,title,company,email,phone,linkedin,local_time,tenureMonths,location,status,notes; companies: id,name,domain,industry,headcount,latestFunding,tech,hq,status.",
+    description: "Read rows of a Sailor list (local, free). Use `fields` to fetch only what you need, e.g. people: id,name,title,company,email,phone,linkedin,local_time,tenureMonths,location,status,notes,score,tier,score_reason,socials; companies: id,name,domain,industry,headcount,latestFunding,tech,hq,status,score,tier,score_reason.",
     parameters: Type.Object({
       list: Type.String({ description: "List id or name" }),
       fields: Type.Optional(Type.Array(Type.String())),

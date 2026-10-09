@@ -4,14 +4,14 @@
  */
 import { randomUUID } from "node:crypto";
 import type { ExtensionContext, ExtensionUIContext } from "@earendil-works/pi-coding-agent";
-import { loadConfig, type SailorConfig } from "../core/config";
+import { loadConfig, type AgentMode, type SailorConfig } from "../core/config";
 import { FiberClient, type ChargeEvent } from "../core/fiber/client";
 import { getOp } from "../core/fiber/ops";
 import { Pricing } from "../core/fiber/pricing";
 import { Gtm } from "../core/gtm";
 import { JobManager } from "../core/jobs/manager";
 import { batchContactsHandler, mosaicHandler } from "../core/repair/engine";
-import { resolveFiberKey, type ResolvedKey } from "../core/secrets";
+import { resolveFiberKey, resolveSandboxKey, type ResolvedKey } from "../core/secrets";
 import { isSandboxKey } from "../core/fiber/sandbox";
 import { Store } from "../core/store/db";
 import { startOfLocalDay } from "../core/budget";
@@ -44,7 +44,7 @@ export class Runtime {
     this.sessionId = ctx.sessionManager?.getSessionId?.() ?? this.sessionId;
     if (this.initialised) { this.meter.attach(this.ui); return; }
     this.config = loadConfig(this.cwd);
-    this.keyInfo = resolveFiberKey(this.config.fiber.profile);
+    this.keyInfo = this.resolveKey();
     this.store = new Store(Store.defaultPath(this.cwd));
     this.client = new FiberClient({
       baseUrl: this.config.fiber.baseUrl,
@@ -70,7 +70,16 @@ export class Runtime {
   }
 
   reloadKey(): void {
-    this.keyInfo = resolveFiberKey(this.config.fiber.profile);
+    this.keyInfo = this.resolveKey();
+  }
+
+  /** Build / Plan / Sandbox (FIB-20426). Sandbox swaps in the sandbox key; the others use the profile's key. */
+  get agentMode(): AgentMode {
+    return this.config?.agentMode ?? "build";
+  }
+
+  private resolveKey(): ResolvedKey | undefined {
+    return this.config.agentMode === "sandbox" ? resolveSandboxKey(this.config.fiber.profile) : resolveFiberKey(this.config.fiber.profile);
   }
 
   /** Sandbox keys start with sk_test_ and are never charged. */

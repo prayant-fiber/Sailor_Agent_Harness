@@ -24,8 +24,14 @@ const SAILOR_HOME = process.env.SAILOR_HOME || join(homedir(), ".sailor");
 const BASE_URL = process.env.FIBER_BASE_URL || "https://api.fiber.ai";
 const PKG = "@sailor/pi-fiber";
 const PI_PKG = "@earendil-works/pi-coding-agent";
+const LOCAL_THEMES = resolve(HERE, "../../pi-fiber/themes");
+const banner = () => `${c.fiber("●")}  ${c.bold("F I B E R")} ${c.fiber("ᴬᴵ")}   ${c.fiber("Sailor")}`;
 
-const c = { dim: (s) => `\x1b[2m${s}\x1b[0m`, green: (s) => `\x1b[32m${s}\x1b[0m`, yellow: (s) => `\x1b[33m${s}\x1b[0m`, red: (s) => `\x1b[31m${s}\x1b[0m`, bold: (s) => `\x1b[1m${s}\x1b[0m` };
+const c = {
+  dim: (s) => `\x1b[2m${s}\x1b[0m`, green: (s) => `\x1b[32m${s}\x1b[0m`, yellow: (s) => `\x1b[33m${s}\x1b[0m`, red: (s) => `\x1b[31m${s}\x1b[0m`, bold: (s) => `\x1b[1m${s}\x1b[0m`,
+  // Fiber brand purple #9D78F0 (truecolor, 256-colour fallback)
+  fiber: (s) => (/^(truecolor|24bit)$/i.test(process.env.COLORTERM ?? "") ? `\x1b[1;38;2;157;120;240m${s}\x1b[0m` : `\x1b[1;38;5;141m${s}\x1b[0m`),
+};
 const noColor = !!process.env.NO_COLOR || !process.stdout.isTTY;
 for (const k of Object.keys(c)) if (noColor) c[k] = (s) => s;
 
@@ -79,7 +85,7 @@ async function credits(key) {
 }
 
 async function login() {
-  console.log(`${c.bold("Connect Fiber")} — create or copy a key at ${c.dim("https://fiber.ai/app/api")}`);
+  console.log(`${c.fiber("●")} ${c.bold("Connect Fiber")} — create or copy a key at ${c.dim("https://fiber.ai/app/api")}`);
   for (let attempt = 0; attempt < 3; attempt++) {
     const key = await ask("Fiber API key (sk_live_… or sandbox sk_test_…): ", { hidden: true });
     if (!key) return false;
@@ -156,7 +162,7 @@ async function doctor() {
 // ── main ──────────────────────────────────────────────────────────────────
 async function main() {
   const args = process.argv.slice(2);
-  if (args[0] === "doctor") return doctor();
+  if (args[0] === "doctor") { console.log(`${banner()}  ${c.dim("doctor")}\n`); return doctor(); }
   if (args[0] === "login") { await login(); return; }
   if (args[0] === "--help" || args[0] === "help") {
     console.log(readFileSync(fileURLToPath(import.meta.url), "utf8").split("\n").slice(2, 8).map((l) => l.replace(/^ \* ?/, "")).join("\n"));
@@ -164,7 +170,7 @@ async function main() {
   }
   const interactive = process.stdin.isTTY && !args.includes("-p") && !args.includes("--print") && !args.includes("--mode");
   if (interactive && !resolveKey()) {
-    console.log(c.bold("\n⛵ Welcome to Sailor — a GTM agent harness on Pi + Fiber AI\n"));
+    console.log(`\n${banner()}\n${c.dim("Welcome! Sailor is Fiber's GTM agent: prospect, enrich and reach out from your terminal.")}\n`);
     console.log("1) Your LLM: Sailor uses Pi's providers. Set e.g. ANTHROPIC_API_KEY / OPENAI_API_KEY, or run /login inside for Claude/ChatGPT subscriptions.");
     console.log("2) Your Fiber key:");
     await login();
@@ -172,12 +178,19 @@ async function main() {
   const pi = await ensurePi();
   const piArgs = [...args];
   if (existsSync(join(LOCAL_EXT, "index.ts"))) piArgs.unshift("-e", LOCAL_EXT);
+  // Fiber look: brand colour theme (fiber-dark / fiber-light, following the terminal) unless the user picked one.
+  const env = { ...process.env };
+  const look = env.SAILOR_LOOK ?? config().ui?.look ?? "fiber";
+  if (look === "fiber" && interactive && !args.includes("--use-theme") && !args.includes("--no-themes")) {
+    if (existsSync(LOCAL_THEMES)) piArgs.unshift("--theme", LOCAL_THEMES);
+    piArgs.unshift("--use-theme", "fiber-light/fiber-dark");
+  }
   else if (!piPackageInstalled(pi)) {
     console.log(c.dim(`Installing ${PKG} into pi…`));
     const r = spawnSync(pi, ["install", `npm:${PKG}`], { stdio: "inherit" });
     if (r.status !== 0) process.exit(r.status ?? 1);
   }
-  const child = spawn(pi, piArgs, { stdio: "inherit", env: { ...process.env } });
+  const child = spawn(pi, piArgs, { stdio: "inherit", env });
   child.on("exit", (code) => process.exit(code ?? 0));
 }
 

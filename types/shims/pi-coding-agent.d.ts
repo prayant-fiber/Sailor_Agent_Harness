@@ -10,6 +10,13 @@ export interface Theme {
   bg?(color: string, text: string): string;
   bold(text: string): string;
   italic?(text: string): string;
+  inverse?(text: string): string;
+}
+
+export interface ReadonlyFooterDataProvider {
+  getGitBranch(): string | null;
+  getExtensionStatuses(): ReadonlyMap<string, string>;
+  onBranchChange(cb: () => void): () => void;
 }
 
 export interface ExtensionUIContext {
@@ -22,6 +29,14 @@ export interface ExtensionUIContext {
   setWidget(key: string, content: string[] | undefined): void;
   setTitle?(title: string): void;
   setEditorText?(text: string): void;
+  setHeader?(factory: ((tui: TUI, theme: Theme) => Component & { dispose?(): void }) | undefined): void;
+  setFooter?(factory: ((tui: TUI, theme: Theme, footerData: ReadonlyFooterDataProvider) => Component & { dispose?(): void }) | undefined): void;
+  setWorkingMessage?(message?: string): void;
+  setWorkingIndicator?(options?: { frames?: string[]; intervalMs?: number }): void;
+  setHiddenThinkingLabel?(label?: string): void;
+  readonly theme?: Theme;
+  getAllThemes?(): { name: string; path: string | undefined }[];
+  setTheme?(theme: string | Theme): { success: boolean; error?: string };
   custom<T>(factory: (tui: TUI, theme: Theme, keybindings: unknown, done: (result: T) => void) => Component): Promise<T>;
 }
 
@@ -38,6 +53,8 @@ export interface ExtensionContext {
   hasUI: boolean;
   signal?: AbortSignal;
   ui: ExtensionUIContext;
+  model?: { id: string; provider?: string; name?: string };
+  getContextUsage?(): { tokens: number | null; contextWindow: number; percent: number | null } | undefined;
   sessionManager: {
     getBranch(): SessionEntry[];
     getEntries(): SessionEntry[];
@@ -85,6 +102,9 @@ export interface ExtensionAPI {
   getFlag(name: string): boolean | string | undefined;
   sendMessage(msg: { customType: string; content: string; display?: boolean; details?: unknown }, opts?: { triggerTurn?: boolean; deliverAs?: "steer" | "followUp" | "nextTurn" }): void;
   appendEntry(customType: string, data: unknown): void;
+  sendUserMessage(content: string, options?: { deliverAs?: "steer" | "followUp"; expandPromptTemplates?: boolean }): void;
+  registerMcpServer?(name: string, config: Record<string, unknown>): void;
+  unregisterMcpServer?(name: string): void;
   getActiveTools(): string[];
   getAllTools(): { name: string; sourceInfo?: { source: string } }[];
   setActiveTools(names: string[]): void;

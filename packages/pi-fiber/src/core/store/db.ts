@@ -17,7 +17,7 @@ export type ItemStatus = "new" | "enriched" | "contacted" | "excluded" | "not_fo
 
 export interface ListRow { id: string; name: string; kind: ListKind; source: string | null; created_at: number; updated_at: number; size?: number }
 export interface EntityRow { id: string; kind: EntityKind; dedupe_key: string; linkedin_url: string | null; domain: string | null; email: string | null; name: string | null; summary: PersonSummary & CompanySummary; data: any; source_op: string | null; fetched_at: number }
-export interface ItemRow { list_id: string; entity_id: string; position: number; status: ItemStatus; notes: string | null; input: Record<string, string> | null; entity?: EntityRow; contacts?: ContactRow[] }
+export interface ItemRow { list_id: string; entity_id: string; position: number; status: ItemStatus; notes: string | null; input: Record<string, string> | null; entity?: EntityRow; contacts?: ContactRow[]; score?: number | null; tier?: string | null; score_reason?: string | null }
 export interface ContactRow { entity_id: string; type: "work_email" | "personal_email" | "phone"; value: string; validity: string | null; source_op: string | null; fetched_at: number }
 export interface JobRow { id: string; kind: string; op: string; remote_id: string | null; status: string; params: any; result: any; list_id: string | null; created_at: number; updated_at: number; next_poll_at: number; error: string | null }
 export interface LedgerRow { id: number; session_id: string; op: string; estimated: number | null; charged: number; method: string | null; at: number }
@@ -107,6 +107,7 @@ export class Store {
     const fresh = this.path !== ":memory:" && !existsSync(this.path);
     this.db = new DatabaseSync(this.path);
     this.db.exec(SCHEMA);
+    this.migrate();
     if (fresh) { try { chmodSync(this.path, 0o600); } catch { /* ignore */ } }
   }
 
@@ -116,6 +117,15 @@ export class Store {
     const local = join(cwd, ".sailor");
     if (existsSync(local)) return join(local, "sailor.db");
     return join(sailorHome(), "sailor.db");
+  }
+
+  /** Additive column migrations for stores created by older versions. */
+  private migrate(): void {
+    const cols = new Set((this.db.prepare("PRAGMA table_info(list_items)").all() as any[]).map((c) => c.name));
+    // FIB-20428 /qualify: AI fit score per list row.
+    if (!cols.has("score")) this.db.exec("ALTER TABLE list_items ADD COLUMN score REAL");
+    if (!cols.has("tier")) this.db.exec("ALTER TABLE list_items ADD COLUMN tier TEXT");
+    if (!cols.has("score_reason")) this.db.exec("ALTER TABLE list_items ADD COLUMN score_reason TEXT");
   }
 
   close(): void { this.db.close(); }
@@ -223,6 +233,11 @@ export class Store {
     this.db.prepare("UPDATE list_items SET status = ? WHERE list_id = ? AND entity_id = ?").run(status, listId, entityId);
   }
 
+  setItemScore(listId: string, entityId: string, score: number, tier: string | null, reason: string | null): boolean {
+    const r = this.db.prepare("UPDATE list_items SET score = ?, tier = ?, score_reason = ? WHERE list_id = ? AND entity_id = ?").run(score, tier, reason, listId, entityId);
+    return Number(r.changes) > 0;
+  }
+
   setItemNotes(listId: string, entityId: string, notes: string): void {
     this.db.prepare("UPDATE list_items SET notes = ? WHERE list_id = ? AND entity_id = ?").run(notes, listId, entityId);
     this.touchList(listId);
@@ -237,6 +252,7 @@ export class Store {
     const rows = this.db.prepare(`SELECT i.*, e.id AS e_id FROM list_items i JOIN entities e ON e.id = i.entity_id WHERE ${where.join(" AND ")} ORDER BY i.position LIMIT ? OFFSET ?`).all(...args) as any[];
     return rows.map((r) => ({
       list_id: r.list_id, entity_id: r.entity_id, position: r.position, status: r.status, notes: r.notes, input: pj(r.input),
+      score: r.score ?? null, tier: r.tier ?? null, score_reason: r.score_reason ?? null,
       entity: this.getEntity(r.entity_id), contacts: opts.withContacts === false ? undefined : this.contacts(r.entity_id),
     }));
   }

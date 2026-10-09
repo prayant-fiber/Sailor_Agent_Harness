@@ -9,9 +9,12 @@ import type { Estimate } from "../core/fiber/ops";
 import { errorMessage } from "../core/errors";
 import type { Runtime } from "./runtime";
 import { ESTIMATORS } from "./tools/common";
+import { planModeBlock } from "./agentMode";
 
 export async function approveSpend(rt: Runtime, ctx: ExtensionContext | undefined, label: string, estimate: Estimate): Promise<{ ok: true } | { ok: false; reason: string }> {
   if (!estimate.credits && !estimate.uncertain && !estimate.forceConfirm && !estimate.blockReason) return { ok: true };
+  const planBlock = planModeBlock(rt, label, estimate);
+  if (planBlock) return { ok: false, reason: planBlock };
   const d = decide({
     opId: label, estimate, available: rt.meter.available(), sessionSpent: rt.sessionSpent(), dailySpent: rt.dailySpent(),
     paidCallsThisTurn: rt.paidCallsThisTurn, hasUI: !!ctx?.hasUI, config: rt.config,

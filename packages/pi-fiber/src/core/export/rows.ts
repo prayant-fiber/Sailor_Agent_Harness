@@ -1,6 +1,7 @@
 /** Turn list items into flat export rows, with presets for common sequencers/CRMs (F7, F14). */
 import { splitName } from "../io/normalize";
 import type { ItemRow, Store } from "../store/db";
+import { extractSocials } from "../prospecting";
 
 export type Preset = "raw" | "outreach" | "apollo" | "hubspot" | "salesloft" | "instantly" | "smartlead";
 export const PRESETS: Preset[] = ["raw", "outreach", "apollo", "hubspot", "salesloft", "instantly", "smartlead"];
@@ -13,6 +14,10 @@ function best(item: ItemRow, type: "work_email" | "personal_email" | "phone"): {
   const c = cs.sort((a, b) => rank(a.validity) - rank(b.validity))[0];
   return { value: c?.value, validity: c?.validity ?? undefined };
 }
+
+// FIB-20428: /qualify scores and /socials ride along in raw exports.
+const scoreCols = (it: ItemRow) => ({ fit_score: it.score ?? "", fit_tier: it.tier ?? "", fit_reason: it.score_reason ?? "" });
+const socialCols = (e: NonNullable<ItemRow["entity"]>) => { const so = extractSocials(e); return { x_url: so.x ?? "", github_url: so.github ?? "", website: so.website ?? "" }; };
 
 export function listExportRows(store: Store, listId: string, opts: ExportRowsOptions = {}): { headers: string[]; rows: Record<string, unknown>[]; skippedDnc: number; skippedInvalid: number } {
   const list = store.getList(listId);
@@ -33,12 +38,14 @@ export function listExportRows(store: Store, listId: string, opts: ExportRowsOpt
       linkedin_url: e.linkedin_url ?? "", work_email: we.value ?? "", work_email_status: we.validity ?? "",
       personal_email: pe.value ?? "", phone: ph.value ?? "", location: s.location ?? "", timezone: s.timezone ?? "",
       tenure_months: s.tenureMonths ?? "", status: it.status, notes: opts.includeNotes === false ? "" : it.notes ?? "",
+      ...scoreCols(it), ...socialCols(e),
       source: e.source_op ?? "", fetched_at: new Date(e.fetched_at).toISOString(),
     } : {
       company: s.name ?? e.name ?? "", domain: s.domain ?? e.domain ?? "", linkedin_url: e.linkedin_url ?? "",
       industry: s.industry ?? "", headcount: s.headcount ?? "", hq: s.hq ?? "", country: s.country ?? "", founded: s.founded ?? "",
       latest_funding_stage: s.latestFunding?.stage ?? "", latest_funding_usd: s.latestFunding?.amountUsd ?? "", latest_funding_date: s.latestFunding?.date ?? "",
       total_funding_usd: s.totalFundingUsd ?? "", tech: (s.tech ?? []).join(", "), status: it.status, notes: it.notes ?? "",
+      ...scoreCols(it), ...socialCols(e),
       source: e.source_op ?? "", fetched_at: new Date(e.fetched_at).toISOString(),
     });
   }

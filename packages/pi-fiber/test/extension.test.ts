@@ -26,6 +26,8 @@ const statuses = new Map<string, string | undefined>();
 let confirmAnswer = true;
 const confirms: string[] = [];
 let active: string[] = [];
+const userMessages: string[] = [];
+const mcpServers = new Map<string, any>();
 
 const fakePi: any = {
   on: (ev: string, h: any) => handlers.set(ev, [...(handlers.get(ev) ?? []), h]),
@@ -36,6 +38,9 @@ const fakePi: any = {
   getFlag: () => undefined,
   sendMessage: (m: any) => notes.push(`msg:${m.content}`),
   appendEntry: () => undefined,
+  sendUserMessage: (m: string) => userMessages.push(m),
+  registerMcpServer: (name: string, cfg: any) => mcpServers.set(name, cfg),
+  unregisterMcpServer: (name: string) => mcpServers.delete(name),
   getAllTools: () => [...tools.keys(), "read", "bash", "edit", "write"].map((name) => ({ name })),
   getActiveTools: () => active,
   setActiveTools: (n: string[]) => { active = n; },
@@ -198,4 +203,87 @@ test("Fiber MCP bridge registers tools and keeps them behind the cost guard", as
   assert.equal(confirms.length, 1, "unknown-cost op asks first");
   assert.match(unknown.text!, /getTalentFlowRivals/);
   await commands.get("fiber").handler("mcp off", ctx);
+});
+
+// ── FIB-20426 / 20427 / 20428 ─────────────────────────────────────────────
+
+test("FIB-20426/27/28: new commands and tools are registered", () => {
+  for (const c of ["build", "plan", "sandbox", "agent-mode", "qualify", "lookalikes", "emails", "phones", "socials", "contact-info", "crm", "look"]) assert.ok(commands.has(c), c);
+  for (const t of ["list_profile", "list_score", "list_socials", "list_dedupe", "crm_export_rows", "crm_mark_exported"]) assert.ok(tools.has(t), t);
+});
+
+test("FIB-20428: /phones reveals phones for a list through the cost guard (DNC skipped)", async () => {
+  const before = mock.requests.length;
+  await commands.get("phones").handler("RevOps", ctx);
+  const reqs = mock.requests.slice(before).filter((q) => q.path === "/v1/contact-details/single");
+  assert.equal(reqs.length, 2, "raj (DNC) is skipped");
+  assert.deepEqual(reqs[0].body.enrichmentType, { getWorkEmails: false, getPersonalEmails: false, getPhoneNumbers: true });
+});
+
+test("FIB-20428: /qualify briefs the agent and list_score narrows to a qualified list", async () => {
+  userMessages.length = 0;
+  await commands.get("qualify").handler("RevOps VP+ at B2B SaaS --min 60", ctx);
+  assert.match(userMessages.at(-1)!, /Qualified means: VP\+ at B2B SaaS/);
+  assert.match(userMessages.at(-1)!, /narrowMinScore=60/);
+  const ids = [...(await callTool("list_show", { list: "RevOps", fields: ["id"] })).text!.matchAll(/\b([0-9a-f-]{12})\b/g)].map((m) => m[1]);
+  const r = await callTool("list_score", { list: "RevOps", scores: ids.map((id, i) => ({ entityId: id, score: 90 - i * 30, reason: "[title] fits" })), narrowMinScore: 60 });
+  assert.match(r.text!, /Saved 3 scores/);
+  assert.match(r.text!, /2 of 3 rows scored ≥ 60/);
+  const prof = await callTool("list_profile", { list: "RevOps" });
+  assert.match(prof.text!, /Qualified: 3\/3 scored/);
+  await commands.get("lookalikes").handler("RevOps --count 10", ctx);
+  assert.match(userMessages.at(-1)!, /find 10 more people like the ones in "RevOps"/);
+  assert.match(userMessages.at(-1)!, /list_dedupe/);
+});
+
+test("FIB-20426: Plan mode blocks paid calls and write tools; Build restores them", async () => {
+  tools.set("mcp__attio__upsert-record", { name: "mcp__attio__upsert-record" });
+  await commands.get("plan").handler("", ctx);
+  assert.ok(!active.includes("bash"));
+  assert.ok(!active.includes("mcp__attio__upsert-record"), "CRM writes are hidden while planning");
+  const r = await callTool("fiber_count", { kind: "people", titles: ["CEO"] });
+  assert.match(r.blocked!, /PLAN mode/);
+  const free = await callTool("list_all", {});
+  assert.ok(free.text);
+  const sp = await emit("before_agent_start", { systemPrompt: "BASE" });
+  assert.match(sp.systemPrompt, /PLAN mode/);
+  await commands.get("build").handler("", ctx);
+  assert.ok(active.includes("mcp__attio__upsert-record"));
+  const ok2 = await callTool("fiber_count", { kind: "people", titles: ["CEO"] });
+  assert.ok(ok2.text);
+  tools.delete("mcp__attio__upsert-record");
+});
+
+test("FIB-20426: Sandbox mode swaps to the sandbox key and never falls back to the live key", async () => {
+  const { runtime } = await import("../src/extension/runtime");
+  process.env.FIBER_SANDBOX_KEY = "sk_test_sandboxkey12345";
+  await commands.get("sandbox").handler("", ctx);
+  assert.equal(runtime.keyInfo?.key, "sk_test_sandboxkey12345");
+  assert.ok(runtime.isSandbox);
+  await commands.get("build").handler("", ctx);
+  assert.equal(runtime.keyInfo?.key, "sk_live_testkey123456");
+  delete process.env.FIBER_SANDBOX_KEY;
+  // no sandbox key anywhere + no UI answer → stays in build
+  const sel = ctx.ui.select;
+  ctx.ui.select = async () => "Cancel";
+  await commands.get("sandbox").handler("", ctx);
+  assert.equal(runtime.agentMode, "build");
+  ctx.ui.select = sel;
+});
+
+test("FIB-20427: /crm connect registers the CRM's MCP server; /crm export briefs the agent", async () => {
+  await commands.get("crm").handler("connect attio", ctx);
+  assert.equal(mcpServers.get("attio")?.url, "https://mcp.attio.com/mcp");
+  userMessages.length = 0;
+  await commands.get("crm").handler("export RevOps", ctx);
+  assert.match(userMessages.at(-1)!, /push list "RevOps".*to Attio/);
+  assert.match(userMessages.at(-1)!, /upsert-record/);
+  const rows = await callTool("crm_export_rows", { list: "RevOps" });
+  assert.match(rows.text!, /1 do-not-contact\/excluded left out/);
+  assert.ok(!rows.text!.includes("raj@tidewave.io"));
+  await commands.get("crm").handler("connect salesforce", ctx);
+  assert.ok(!mcpServers.has("attio"), "switching CRM unregisters the old server");
+  assert.deepEqual(mcpServers.get("salesforce")?.args?.slice(0, 2), ["-y", "@salesforce/mcp"]);
+  await commands.get("crm").handler("disconnect", ctx);
+  assert.equal(mcpServers.size, 0);
 });
