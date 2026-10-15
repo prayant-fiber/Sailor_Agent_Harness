@@ -1,32 +1,60 @@
-# Sailor — Open-Source GTM Agent Harness (built on Pi + Fiber AI)
+# Sailor documentation
 
-> Working name: **Sailor** (from the project folder `Sailor_Agent_Harness`).
-> A terminal-first agent harness for **sales reps, GTM engineers, and recruiters**. Users bring their own LLM and their own Fiber AI API key, then chat to build outreach lists, sales strategies, and cold-call scripts.
+Sailor is an open-source GTM agent harness for sales reps, GTM engineers and recruiters, built on the [Pi](https://github.com/badlogic/pi-mono) terminal agent and the [Fiber AI](https://fiber.ai) API. Start with the [README](../README.md) for the overview.
 
-## Document map
+## Using Sailor
 
-| # | File | What it covers |
-|---|------|----------------|
-| 01 | [01_Problem_Statement.md](01_Problem_Statement.md) | The brief restated in detail: users, jobs-to-be-done, goals, non-goals, success criteria |
-| 02 | [02_Research_Findings.md](02_Research_Findings.md) | Everything pulled from the linked docs: Fiber MCP, Kitchen Sink, Mosaic CSV healing, TypeScript SDK, full API catalog, billing, and the Pi harness |
-| 03 | [03_Architecture.md](03_Architecture.md) | System design, repo layout, data model, key flows (diagrams) |
-| 04 | [04_Feature_Specs.md](04_Feature_Specs.md) | One spec per feature in the brief (plus the ones the brief missed): commands, tools, UI, acceptance criteria |
-| 05 | [05_Implementation_Plan.md](05_Implementation_Plan.md) | Phased build plan with tasks, code skeletons, estimates, and a hackathon cut |
-| 06 | [06_Edge_Cases_and_Gaps.md](06_Edge_Cases_and_Gaps.md) | Cases the brief does not mention: cost safety, security, compliance, data quality, failure modes |
-| 07 | [07_Testing_and_Demo.md](07_Testing_and_Demo.md) | Test strategy, evals, dogfooding plan, demo script |
-| 08 | [08_Implementation_Status.md](08_Implementation_Status.md) | **What was built**: feature → code map, edge-case coverage, corrections to 02–05, unverified assumptions, next steps |
+| Guide | What it covers |
+|---|---|
+| [Getting started](guide/getting-started.md) | Prerequisites, install, offline mock run, sandbox run, going live with a budget, first session |
+| [User guide](guide/user-guide.md) | Core concepts (lists, credits and the cost guard, personas, agent modes) and every workflow: prospecting, contacts, qualify and lookalikes, repair, outreach, strategy, export, CRM, recruiting, the long tail of Fiber, SDK scripts, headless use, privacy |
+| [Command reference](guide/commands.md) | Every slash command, option, prompt template, shortcut, list-pane key, CLI flag and launcher command |
+| [Configuration](guide/configuration.md) | Config files and every setting, environment variables, keys and profiles, Google Sheets, Mosaic hosting, CRMs, `sailor.md`, where data lives |
+| [Troubleshooting & FAQ](guide/troubleshooting.md) | Common errors and fixes, FAQ, reset and uninstall |
 
-> The code lives in this repo (see the root [README](../README.md)). Docs 01–07 are the original design; doc 08 records how the implementation followed or changed it.
+## Building on Sailor
 
-## One-paragraph summary
+| Guide | What it covers |
+|---|---|
+| [AGENTS.md](../AGENTS.md) | Orientation for coding agents and contributors: repo map, hard rules, where to change what, style |
+| [Architecture](developer/architecture.md) | Packages and layers, lifecycle, a paid call end to end, `FiberClient`, data model, jobs, tool gating, security model |
+| [Extending Sailor](developer/extending.md) | Recipes: Fiber operations, tools, commands, skills, prompt templates, export presets, CRMs, sandbox gaps, eval scenarios, using the core from scripts |
+| [Testing & evals](developer/testing.md) | Test suites, stubs, mock server, typecheck, agent evals, CI |
+| [Releasing](developer/releasing.md) | Release checklist and known pre-release items |
+| [Tool reference](reference/tools.md) | Every tool the agent can call, with cost and availability |
+| [Contributing](../CONTRIBUTING.md) · [Security](../SECURITY.md) · [Changelog](../CHANGELOG.md) | |
 
-Fork/extend the **Pi coding agent** (`@earendil-works/pi-coding-agent`), which has a small core, 25+ LLM providers, and a strong extension API (custom tools, slash commands, TUI components, status bar, widgets, skills, packages). Ship Sailor as a **Pi package** (`pi install npm:@sailor/pi-fiber`) plus a thin branded launcher. It includes: (1) typed Fiber tools built on `@fiberai/sdk`, (2) the Fiber MCP (`https://mcp.fiber.ai/mcp/v2` or `/mcp` Core) as a fallback for the long tail of 200+ operations, (3) a live **credit meter** in the footer, (4) TUI **prospect/company panes**, (5) one-command **list repair** through Kitchen Sink bulk + Mosaic, (6) **Google Sheets export/import**, and (7) GTM **skills/playbooks** for sales, GTM engineering, and recruiting. It also adds a **cost-guard** that the brief doesn't mention: it estimates cost, asks for confirmation, and enforces budgets before any paid call.
+## Demo material
 
-## Key facts at a glance
+| File | What it is |
+|---|---|
+| [demo/sandbox-runbook.md](demo/sandbox-runbook.md) | Copy-paste runbook for a demo on a Fiber sandbox key |
+| [demo/demo-video-plan.md](demo/demo-video-plan.md) | Plan for a 4–5 minute demo video: scenes, what to type, recording |
+| [demo/video-script.md](demo/video-script.md) | Timestamped voiceover for the sandbox demo |
 
-- Fiber base URL: `https://api.fiber.ai` (auth via `apiKey` in body/query, or `x-api-key` / `Authorization: Bearer` header). Keys look like `sk_live_...`.
-- Credit balance: `GET /v1/get-org-credits?apiKey=...`. Free, 120 req/min. Returns `max`, `used`, `available`, `usagePeriodResetsOn`, `creditsPerOperation`.
+Scripts live in [`demo/`](../demo/): `run-demo.sh` (mock), `sandbox-demo.sh` (sandbox), `probe-sandbox.sh`, `demo.tape` (VHS).
+
+## Design documents
+
+The original design, written before implementation. They explain *why* Sailor is shaped the way it is; where they differ from the code, the guides above and the code are current.
+
+| # | Document | Covers |
+|---|---|---|
+| 01 | [Problem statement](01_Problem_Statement.md) | Users, jobs to be done, goals, non-goals, success criteria |
+| 02 | [Research findings](02_Research_Findings.md) | Fiber MCP, Kitchen Sink, Mosaic, the SDK, the API catalog, billing, Pi |
+| 03 | [Architecture (design)](03_Architecture.md) | Planned system design, data model and flows |
+| 04 | [Feature specs](04_Feature_Specs.md) | One spec per feature, with acceptance criteria |
+| 05 | [Implementation plan](05_Implementation_Plan.md) | Phased plan and code skeletons |
+| 06 | [Edge cases and gaps](06_Edge_Cases_and_Gaps.md) | Cost, security, compliance, data quality and failure modes (ids like A5, C9 referenced in code) |
+| 07 | [Testing and demo](07_Testing_and_Demo.md) | Test strategy, evals, dogfooding, demo script |
+| 08 | [Implementation status](08_Implementation_Status.md) | What was built (v0.1), feature → code map, edge-case coverage, assumptions to verify |
+
+## Fiber facts at a glance
+
+- API base URL `https://api.fiber.ai`; MCP at `https://mcp.fiber.ai` (`/mcp` Core, `/mcp/v2`, `/mcp/lite`).
+- Keys: `sk_live_…` (live) and `sk_test_…` (sandbox, never charged). Create them at [fiber.ai/app/api](https://fiber.ai/app/api).
+- Credit balance: `GET /v1/get-org-credits`, free.
 - Every paid response carries `chargeInfo`, the authoritative record of what was billed.
-- Kitchen Sink: `POST /v1/kitchen-sink/person`, `/company`, `/bulk/profile`, `/bulk/company` (sync; bulk max 50 per call).
-- Mosaic CSV healing: `POST /v1/mosaic/start` (public HTTPS file URL, ≤50 MiB, ≤20,000 rows) → `POST /v1/mosaic/poll` (free) → `outputCsvUrl` and `reportUrl` (temporary links).
-- Pi has **no built-in MCP** by design. MCP comes either from an extension we write or from the community `pi-mcp-adapter` package.
+- Kitchen Sink: synchronous resolve from messy identifiers; bulk endpoints take up to 50 per call.
+- Mosaic: async CSV healing from a public HTTPS URL, up to 20,000 rows and 50 MiB per run; poll no faster than every 30 s.
+- Per-operation agent docs: `https://api.fiber.ai/ai-docs/<operationId>.md`.
